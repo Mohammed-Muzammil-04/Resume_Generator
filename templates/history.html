@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saved Resumes — ResumeAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f0f; --surface: #181818; --surface2: #222;
+      --border: #2a2a2a; --accent: #c8f060; --accent2: #60d0f0;
+      --text: #f0ede8; --muted: #888; --radius: 12px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 40px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: rgba(15,15,15,0.95);
+      backdrop-filter: blur(12px); z-index: 100;
+    }
+    .logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); }
+    .logo span { color: var(--text); }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav a:hover { color: var(--accent); }
+
+    .page { max-width: 900px; margin: 0 auto; padding: 50px 30px; }
+    h2 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { color: var(--muted); margin-bottom: 36px; font-size: 0.9rem; }
+
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .history-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .history-card:hover { border-color: var(--accent); }
+    .card-info { flex: 1; }
+    .card-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+    .card-meta { color: var(--muted); font-size: 0.8rem; display: flex; gap: 12px; }
+    .badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+    }
+    .card-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+      font-weight: 500; padding: 7px 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-sm:hover { border-color: var(--accent2); color: var(--accent2); }
+    .btn-sm.del:hover { border-color: #f06060; color: #f06060; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px;
+      width: 90%; max-width: 680px; max-height: 80vh;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-tabs { display: flex; gap: 8px; }
+    .mtab {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+      font-weight: 500; padding: 7px 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .mtab.active { border-color: var(--accent); color: var(--accent); background: rgba(200,240,96,0.08); }
+    .modal-body {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 18px; font-size: 0.85rem; line-height: 1.75;
+      white-space: pre-wrap; overflow-y: auto; flex: 1; color: #ccc; max-height: 400px;
+    }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-modal {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem; font-weight: 500; padding: 10px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-modal:hover { border-color: var(--accent); color: var(--accent); }
+
+    .empty { text-align: center; color: var(--muted); padding: 80px 0; font-size: 0.9rem; }
+    .empty-icon { font-size: 3rem; opacity: 0.2; margin-bottom: 12px; }
+
+    .toast {
+      position: fixed; bottom: 30px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--accent); color: #0f0f0f; font-weight: 600;
+      font-size: 0.85rem; padding: 10px 24px; border-radius: 100px;
+      transition: transform 0.3s ease; z-index: 999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Resume<span>AI</span></div>
+  <a href="/">← Back to Generator</a>
+</nav>
+
+<div class="page">
+  <h2>Saved Resumes</h2>
+  <p class="subtitle">All your previously generated documents, stored locally.</p>
+  <div class="history-list" id="historyList">
+    <div class="empty"><div class="empty-icon">📂</div>Loading...</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Resume</div>
+      <button class="modal-close" onclick="hideModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="mtab active" id="mt-resume" onclick="switchModal('resume')">📄 Resume</button>
+      <button class="mtab" id="mt-cover" onclick="switchModal('cover')">✉️ Cover Letter</button>
+      <button class="mtab" id="mt-full" onclick="switchModal('full')">📑 Full</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-modal" onclick="copyModal()">📋 Copy</button>
+      <button class="btn-modal" onclick="downloadModalPDF()">⬇️ Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let modalRecord = null;
+  let modalTab = "resume";
+  let modalResume = "", modalCover = "", modalFull = "";
+
+  async function loadHistory() {
+    const res = await fetch("/api/history");
+    const list = await res.json();
+    const container = document.getElementById("historyList");
+
+    if (!list.length) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">📂</div>No saved resumes yet. Generate one!</div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(r => `
+      <div class="history-card" onclick="openRecord('${r.id}')">
+        <div class="card-info">
+          <div class="card-name">${r.name}</div>
+          <div class="card-meta">
+            <span>${r.job_title}</span>
+            <span>•</span>
+            <span>${r.created_at}</span>
+          </div>
+        </div>
+        <div class="badge">${r.template}</div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn-sm" onclick="openRecord('${r.id}')">View</button>
+          <button class="btn-sm del" onclick="deleteRecord('${r.id}', this)">Delete</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function parseRecord(raw) {
+    const rIdx = raw.indexOf("--- RESUME ---");
+    const cIdx = raw.indexOf("--- COVER LETTER ---");
+    if (rIdx !== -1 && cIdx !== -1) {
+      modalResume = raw.slice(rIdx + "--- RESUME ---".length, cIdx).trim();
+      modalCover  = raw.slice(cIdx + "--- COVER LETTER ---".length).trim();
+    } else {
+      modalResume = modalCover = raw;
+    }
+    modalFull = raw;
+  }
+
+  async function openRecord(id) {
+    const res = await fetch(`/api/history/${id}`);
+    modalRecord = await res.json();
+    parseRecord(modalRecord.output);
+    document.getElementById("modalTitle").innerText = `${modalRecord.name} — ${modalRecord.job_title}`;
+    switchModal("resume");
+    document.getElementById("modalOverlay").classList.add("show");
+  }
+
+  function switchModal(tab) {
+    modalTab = tab;
+    document.querySelectorAll(".mtab").forEach(b => b.classList.remove("active"));
+    document.getElementById("mt-" + tab).classList.add("active");
+    const body = document.getElementById("modalBody");
+    if (tab === "resume") body.innerText = modalResume;
+    else if (tab === "cover") body.innerText = modalCover;
+    else body.innerText = modalFull;
+  }
+
+  function hideModal() {
+    document.getElementById("modalOverlay").classList.remove("show");
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById("modalOverlay")) hideModal();
+  }
+
+  function copyModal() {
+    const text = modalTab === "resume" ? modalResume : modalTab === "cover" ? modalCover : modalFull;
+    navigator.clipboard.writeText(text).then(() => showToast("📋 Copied!"));
+  }
+
+  async function downloadModalPDF() {
+    if (!modalRecord) return;
+    showToast("⏳ Building PDF...");
+    const res = await fetch("/download-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ output: modalFull, name: modalRecord.name })
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = modalRecord.name.replace(" ","_") + "_Resume.pdf";
+    a.click();
+    showToast("✓ PDF Downloaded!");
+  }
+
+  async function deleteRecord(id, btn) {
+    await fetch(`/api/history/${id}`, { method: "DELETE" });
+    showToast("🗑️ Deleted");
+    loadHistory();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2500);
+  }
+
+  loadHistory();
+</script>
+</body>
+</html>

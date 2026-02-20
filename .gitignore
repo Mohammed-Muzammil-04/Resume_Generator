@@ -1,0 +1,4 @@
+.env
+resumes_db.json
+__pycache__/
+*.pyc

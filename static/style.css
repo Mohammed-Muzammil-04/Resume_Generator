@@ -1,0 +1,4 @@
+body { font-family: Arial; max-width: 800px; margin: auto; padding: 20px; }
+input, textarea { width: 100%; margin: 8px 0; padding: 10px; }
+button { background: #4CAF50; color: white; padding: 12px 24px; border: none; cursor: pointer; }
+#output { white-space: pre-wrap; margin-top: 20px; background: #f4f4f4; padding: 20px; }
