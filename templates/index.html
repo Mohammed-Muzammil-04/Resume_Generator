@@ -1072,7 +1072,7 @@ Format your response EXACTLY as:
 (complete cover letter here)`;
 
   try {
-    const res = await fetch("/generate", {
+    const res = await fetch("https://resumegenerator-hazel.vercel.app/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1132,7 +1132,9 @@ function copyOutput() {
 
 async function downloadPDF(type) {
   if (!fullOutput) { showToast("⚠️ Generate first!"); return; }
-  const endpoint = type === "resume" ? "/download-resume-pdf" : "/download-cover-pdf";
+  const endpoint = type === "resume"
+  ? "https://resumegenerator-hazel.vercel.app/download-resume-pdf"
+  : "https://resumegenerator-hazel.vercel.app/download-cover-pdf";
   const label    = type === "resume" ? "Resume" : "Cover Letter";
   const name     = document.getElementById("f_name").value || "Resume";
   const jobTitle = document.getElementById("f_target_title").value || "";
