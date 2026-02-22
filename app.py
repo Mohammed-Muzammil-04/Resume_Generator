@@ -5,10 +5,9 @@ from fpdf.enums import XPos, YPos
 import os, json, uuid, io, re
 from datetime import datetime
 from dotenv import load_dotenv
-import os
 
 app = Flask(__name__)
-import os
+
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
